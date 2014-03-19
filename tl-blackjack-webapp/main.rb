@@ -46,6 +46,24 @@ helpers do
     "<img src='/images/cards/#{suit}_#{value}.jpg' class='card_image'>"
   end
 
+  def winner!(msg)
+    @play_again = true
+    @show_hit_or_stay_buttons = false
+    @success = "<strong>#{session[:player_name]} wins! </strong> #{msg}"
+  end
+
+  def loser!(msg)
+    @play_again = true
+    @show_hit_or_stay_buttons = false
+    @error = "<strong>#{session[:player_name]} loses! </strong> #{msg}"
+  end
+
+  def tie!(msg)
+    @play_again = true
+    @show_hit_or_stay_buttons = false
+    @success = "<strong>It's a tie!</strong> #{msg}"
+  end
+
 end
 
 before do
@@ -98,11 +116,9 @@ post '/game/player/hit' do
 
   player_total = calculate_total(session[:player_cards])
   if player_total == 21
-    @success = "Congratulations! #{session[:player_name]} hit blackjack!"
-    @show_hit_or_stay_buttons = false
-  elsif player_total > 21
-    @error = "Sorry, it looks like #{session[:player_name]} busted"
-    @show_hit_or_stay_buttons = false
+    winner!("#{session[:player_name]} hit blackjack")    
+  elsif player_total > 21    
+    loser!("Sorry, it looks like #{session[:player_name]} busted at #{player_total}")
   end
 
   erb :game
@@ -111,6 +127,48 @@ end
 post '/game/player/stay' do
   @success = "#{session[:player_name]} has chosen to stay."
   @show_hit_or_stay_buttons = false
-  erb :game
+  redirect '/game/dealer'
   
+end
+
+get '/game/dealer' do
+  @show_hit_or_stay_buttons = false
+  dealer_total = calculate_total(session[:dealer_cards])
+  if dealer_total == 21
+    loser!("Dealer hit blackjack!")
+  elsif dealer_total > 21
+    winner!("Dealer busted at #{dealer_total}.")
+  elsif dealer_total >= 17
+    redirect '/game/compare'
+  else
+    @show_dealer_hit_button = true
+
+  end
+    
+  erb :game    
+end
+
+post '/game/dealer/hit' do
+  session[:dealer_cards] << session[:deck].pop
+  redirect '/game/dealer'
+end
+
+get '/game/compare' do
+  @show_hit_or_stay_buttons = false
+  player_total = calculate_total(session[:player_cards])
+  dealer_total = calculate_total(session[:dealer_cards])
+
+  if player_total < dealer_total
+    
+    loser!("#{session[:player_name]} stayed at #{player_total}, and the dealer stayed at #{dealer_total}.")
+  elsif player_total > dealer_total
+    winner!("#{session[:player_name]} stayed at #{player_total}, and the dealer stayed at #{dealer_total}.")
+  else
+    tie!("#{session[:player_name]} stayed at #{player_total}, and the dealer stayed at #{dealer_total}.")
+  end
+  erb :game
+end
+
+get '/game_over' do
+  erb :game_over
 end

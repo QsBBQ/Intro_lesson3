@@ -2,7 +2,13 @@
 
 <p>Welcome <%= session[:player_name]%>!</p>
 
-
+<% if @play_again %>
+  <p>
+    <strong>Play again?</strong>
+    <a href="/game" class="btn btn-primary">Yes</a>
+    <a href="/game_over" class="btn">No</a>
+  </p>
+<% end %>
 
 <div class="well">
     <h4>Dealer's cards:</h4>
@@ -11,6 +17,14 @@
     <%= card_image(card) %>
   <% end %>
 
+  <% if @show_dealer_hit_button %>
+    <p>
+      <h5>Dealer has <%= calculate_total(session[:dealer_cards])%> and will hit.</h5>
+    <form action='/game/dealer/hit' method='post'>
+      <input type='submit' class='btn btn-primary' value='Click to see dealer card &rarr;'>
+    </form>
+    </p>
+  <% end %>
 
 </div>
 
