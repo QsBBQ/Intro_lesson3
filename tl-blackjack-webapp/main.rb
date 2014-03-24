@@ -1,3 +1,4 @@
+#!/usr/bin/ruby env
 require 'rubygems'
 require 'sinatra'
 require 'pry'
